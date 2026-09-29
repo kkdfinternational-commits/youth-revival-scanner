@@ -154,6 +154,7 @@
 
   let codeReader = null;
   let scanning = false;
+  let processingScan = false;
   let lastScannedCode = "";
   let lastScanTime = 0;
 
@@ -219,9 +220,14 @@
               return;
             }
 
+            if (processingScan) {
+              return;
+            }
+            
             lastScannedCode = code;
             lastScanTime = now;
-
+            processingScan = true;
+            
             processScan(code);
           }
 
@@ -285,9 +291,11 @@
     } finally {
 
       delete window[callbackName];
-
+    
       script.remove();
-
+    
+      processingScan = false;
+    
     }
   };
 
@@ -296,16 +304,18 @@
 
   script.onerror = function() {
 
-    delete window[callbackName];
+  delete window[callbackName];
 
-    script.remove();
+  script.remove();
 
-    showError({
-      message:
-        "Unable to connect to attendance server."
-    });
+  processingScan = false;
 
-  };
+  showError({
+    message:
+      "Unable to connect to attendance server."
+  });
+
+};
 
 
   document.body.appendChild(script);
