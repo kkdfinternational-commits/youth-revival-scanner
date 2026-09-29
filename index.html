@@ -250,31 +250,156 @@
 
   function processScan(registrationId) {
 
-    const status =
-      document.getElementById("status");
+  const status =
+    document.getElementById("status");
 
-    status.className = "status";
+  status.className = "status";
+  status.innerHTML =
+    "Checking registration...";
+
+  const callbackName =
+    "scanCallback_" + Date.now();
+
+  const script =
+    document.createElement("script");
+
+  const url =
+    "https://script.google.com/macros/s/AKfycbzcaMCdu_n3GJIKnL4lQVpEV5JmLTGb47nDtyJM9La8Fh0bZq__qCnP6cfOug0FdQt0/exec" +
+    "?action=scan" +
+    "&registrationId=" +
+    encodeURIComponent(registrationId) +
+    "&callback=" +
+    callbackName;
+
+
+  window[callbackName] = function(result) {
+
+    try {
+
+      showResult(result);
+
+    } catch (error) {
+
+      showError(error);
+
+    } finally {
+
+      delete window[callbackName];
+
+      script.remove();
+
+    }
+  };
+
+
+  script.src = url;
+
+  script.onerror = function() {
+
+    delete window[callbackName];
+
+    script.remove();
+
+    showError({
+      message:
+        "Unable to connect to attendance server."
+    });
+
+  };
+
+
+  document.body.appendChild(script);
+}
+
+  function showResult(result) {
+
+  const status =
+    document.getElementById("status");
+
+
+  if (!result) {
+
+    status.className =
+      "status error";
+
     status.innerHTML =
-      "Checking registration...";
+      "No response from server.";
 
-    /*
-      NEXT STEP:
-      We will connect this function to
-      your Google Apps Script backend.
-    */
-
-    console.log(
-      "Scanned Registration ID:",
-      registrationId
-    );
-
-    status.innerHTML =
-      "Barcode detected:<br><br>" +
-      "<strong>" +
-      escapeHtml(registrationId) +
-      "</strong>";
+    return;
   }
 
+
+  // ==========================================
+  // CHECK-IN SUCCESSFUL
+  // ==========================================
+
+  if (result.success) {
+
+    status.className =
+      "status success";
+
+    status.innerHTML =
+
+      "<div class='participant-name'>" +
+      escapeHtml(result.name) +
+      "</div>" +
+
+      "<div class='church'>" +
+      escapeHtml(result.church) +
+      "</div>" +
+
+      "<div class='time'>" +
+      "CHECK-IN SUCCESSFUL<br>" +
+      escapeHtml(result.time) +
+      "</div>";
+
+    return;
+  }
+
+
+  // ==========================================
+  // ALREADY CHECKED IN
+  // ==========================================
+
+  if (
+    result.status === "ALREADY_ACTIVE"
+  ) {
+
+    status.className =
+      "status warning";
+
+    status.innerHTML =
+
+      "<div class='participant-name'>" +
+      "ALREADY ACTIVE" +
+      "</div>" +
+
+      "<div class='church'>" +
+      escapeHtml(result.name) +
+      "</div>" +
+
+      "<div class='time'>" +
+      "Original Check-In:<br>" +
+      escapeHtml(result.time) +
+      "</div>";
+
+    return;
+  }
+
+
+  // ==========================================
+  // OTHER ERROR
+  // ==========================================
+
+  status.className =
+    "status error";
+
+  status.innerHTML =
+    escapeHtml(
+      result.message ||
+      "Unable to process barcode."
+    );
+}
 
   function escapeHtml(value) {
 
