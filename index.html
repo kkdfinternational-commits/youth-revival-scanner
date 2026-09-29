@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>8th Youth Revival Meet - Check-In</title>
+
+  <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #07152f;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    .scanner-box {
+      background: #10244a;
+      border-radius: 20px;
+      padding: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    video {
+      width: 100%;
+      border-radius: 14px;
+      background: black;
+      display: block;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #d9ad45;
+      color: #07152f;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+    }
+
+    .status {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #10244a;
+      min-height: 60px;
+      font-size: 16px;
+    }
+
+    .success {
+      background: #14532d;
+    }
+
+    .warning {
+      background: #713f12;
+    }
+
+    .error {
+      background: #7f1d1d;
+    }
+
+    .participant-name {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .church {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .time {
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 12px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="title">
+    8th Youth Revival Meet 2026
+  </div>
+
+  <div class="subtitle">
+    Attendance Check-In
+  </div>
+
+  <div class="scanner-box">
+
+    <video id="video" playsinline></video>
+
+    <button id="startButton" onclick="startScanner()">
+      START SCANNER
+    </button>
+
+    <div id="status" class="status">
+      Press START SCANNER to begin.
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Scan the barcode printed on the participant ID card.
+  </div>
+
+</div>
+
+<script>
+
+  let codeReader = null;
+  let scanning = false;
+  let lastScannedCode = "";
+  let lastScanTime = 0;
+
+  async function startScanner() {
+
+    if (scanning) {
+      return;
+    }
+
+    const video =
+      document.getElementById("video");
+
+    const button =
+      document.getElementById("startButton");
+
+    const status =
+      document.getElementById("status");
+
+    status.className = "status";
+    status.innerHTML = "Starting camera...";
+
+    button.disabled = true;
+
+    try {
+
+      // Check camera support
+      if (!navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia) {
+
+        throw new Error(
+          "Camera access is not supported by this browser."
+        );
+      }
+
+      codeReader =
+        new ZXingBrowser.BrowserMultiFormatReader();
+
+      scanning = true;
+
+      await codeReader.decodeFromConstraints(
+        {
+          video: {
+            facingMode: {
+              ideal: "environment"
+            }
+          }
+        },
+        video,
+        (result, error) => {
+
+          if (result) {
+
+            const code =
+              result.getText().trim();
+
+            const now =
+              Date.now();
+
+            if (
+              code === lastScannedCode &&
+              now - lastScanTime < 3000
+            ) {
+              return;
+            }
+
+            lastScannedCode = code;
+            lastScanTime = now;
+
+            processScan(code);
+          }
+
+        }
+      );
+
+      status.className = "status";
+      status.innerHTML = "Camera ready. Scan the barcode.";
+
+    } catch (error) {
+
+      scanning = false;
+      button.disabled = false;
+
+      status.className = "status error";
+
+      status.innerHTML =
+        "Unable to start camera.<br><br>" +
+        escapeHtml(
+          error.message ||
+          "Camera permission was denied."
+        );
+    }
+  }
+
+
+  function processScan(registrationId) {
+
+    const status =
+      document.getElementById("status");
+
+    status.className = "status";
+    status.innerHTML =
+      "Checking registration...";
+
+    /*
+      NEXT STEP:
+      We will connect this function to
+      your Google Apps Script backend.
+    */
+
+    console.log(
+      "Scanned Registration ID:",
+      registrationId
+    );
+
+    status.innerHTML =
+      "Barcode detected:<br><br>" +
+      "<strong>" +
+      escapeHtml(registrationId) +
+      "</strong>";
+  }
+
+
+  function escapeHtml(value) {
+
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+</script>
+
+</body>
+</html>
