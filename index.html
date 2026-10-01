@@ -1,447 +1,382 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>8th Youth Revival Meet - Check-In</title>
-
-  <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #07152f;
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 480px;
-      text-align: center;
-    }
-
-    .title {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .subtitle {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 20px;
-    }
-
-    .scanner-box {
-      background: #10244a;
-      border-radius: 20px;
-      padding: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-    }
-
-    video {
-      width: 100%;
-      border-radius: 14px;
-      background: black;
-      display: block;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 15px;
-      padding: 15px;
-      border: none;
-      border-radius: 12px;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-      background: #d9ad45;
-      color: #07152f;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-    }
-
-    .status {
-      margin-top: 18px;
-      padding: 16px;
-      border-radius: 12px;
-      background: #10244a;
-      min-height: 60px;
-      font-size: 16px;
-    }
-
-    .success {
-      background: #14532d;
-    }
-
-    .warning {
-      background: #713f12;
-    }
-
-    .error {
-      background: #7f1d1d;
-    }
-
-    .participant-name {
-      font-size: 22px;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .church {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    .time {
-      margin-top: 8px;
-      font-size: 14px;
-    }
-
-    .footer {
-      margin-top: 18px;
-      font-size: 12px;
-      opacity: 0.6;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8th Youth Revival Meet - Check-In</title>
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#07152f;color:#fff;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+.container{width:100%;max-width:480px;text-align:center}
+.title{font-size:26px;font-weight:bold;color:#d9ad45}
+.subtitle{font-size:14px;opacity:.8;margin:4px 0 20px}
+.box{background:#10244a;border-radius:20px;padding:15px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#cameraWrap{display:none;position:relative;border-radius:14px;overflow:hidden;background:#000}
+video{width:100%;display:block;aspect-ratio:3/4;object-fit:cover}
+.frame{position:absolute;left:10%;right:10%;top:30%;bottom:30%;border:3px solid #d9ad45;border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.45)}
+.frame::after{content:"";position:absolute;left:0;right:0;height:2px;background:#ef4444;top:0;animation:sweep 1.6s ease-in-out infinite alternate}
+@keyframes sweep{to{top:100%}}
+button{width:100%;margin-top:15px;padding:18px;border:none;border-radius:12px;font-size:19px;font-weight:bold;cursor:pointer;background:#d9ad45;color:#07152f}
+button.secondary{background:transparent;border:2px solid #d9ad45;color:#d9ad45;font-size:16px;padding:12px}
+.hidden{display:none!important}
+.status{margin-top:15px;padding:16px;border-radius:12px;background:#07152f;min-height:60px;font-size:16px}
+.success{background:#14532d}.warning{background:#713f12}.error{background:#7f1d1d}
+.big{font-size:22px;font-weight:bold;margin-bottom:6px}
+.name{font-size:20px;font-weight:bold;margin-top:8px}
+.small{font-size:14px;opacity:.9;margin-top:6px}
+.footer{margin-top:18px;font-size:12px;opacity:.6}
+body{padding-bottom:80px}
+.manualFab{position:fixed;left:16px;bottom:16px;width:auto;margin:0;padding:12px 20px;font-size:15px;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.manual{position:fixed;inset:0;background:#07152f;z-index:10;overflow:auto;padding:20px}
+.mIn{max-width:480px;margin:0 auto;text-align:left}
+.mHead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.mHead button{width:auto;margin:0;padding:10px 14px;font-size:15px}
+.mHead .big{margin:0}
+#mSearch{width:100%;padding:12px;border-radius:10px;border:none;font-size:16px;margin-bottom:12px}
+.stateBtn{display:flex;justify-content:space-between;text-align:left;margin-top:10px;background:#10244a;color:#fff;border:1px solid #d9ad45}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#10244a;border-radius:12px;padding:12px;margin-top:10px}
+.row.done{background:#14532d}
+.row .info{flex:1;min-width:0}
+.row .pn{font-weight:bold;font-size:16px}
+.row .pm{font-size:14px;opacity:.9;margin-top:2px}
+.row .pc{font-size:12px;opacity:.7;margin-top:2px}
+.row button{width:auto;margin:0;padding:12px 14px;font-size:14px;white-space:nowrap}
+.row .ok{font-size:13px;font-weight:bold;text-align:right}
+.row .bad{font-size:12px;color:#fca5a5;margin-top:4px}
+</style>
 </head>
-
 <body>
-
 <div class="container">
+  <div class="title">8th Youth Revival Meet 2026</div>
+  <div class="subtitle">Attendance Check-In</div>
 
-  <div class="title">
-    8th Youth Revival Meet 2026
-  </div>
-
-  <div class="subtitle">
-    Attendance Check-In
-  </div>
-
-  <div class="scanner-box">
-
-    <video id="video" playsinline></video>
-
-    <button id="startButton" onclick="startScanner()">
-      START SCANNER
-    </button>
-
-    <div id="status" class="status">
-      Press START SCANNER to begin.
+  <div class="box">
+    <div id="cameraWrap">
+      <video id="video" playsinline muted></video>
+      <div class="frame"></div>
     </div>
 
+    <div id="status" class="status">Press START SCAN to begin.</div>
+
+    <button id="mainBtn" onclick="startScan()">START SCAN</button>
+    <button id="retryBtn" class="hidden" onclick="retrySend()">RETRY</button>
+    <button id="cancelBtn" class="secondary hidden" onclick="cancelScan()">CANCEL</button>
   </div>
 
-  <div class="footer">
-    Scan the barcode printed on the participant ID card.
-  </div>
+  <div class="footer">Hold the participant ID card barcode inside the frame.</div>
+</div>
 
+<button id="manualBtn" class="manualFab" onclick="openManual()">MANUAL</button>
+
+<div id="manual" class="manual hidden">
+  <div class="mIn">
+    <div class="mHead">
+      <button id="mBack" class="secondary" onclick="manualBack()">&#10005; Close</button>
+      <div id="mTitle" class="big">Select State</div>
+    </div>
+    <input id="mSearch" class="hidden" placeholder="Search name or mobile" oninput="renderList()">
+    <div id="mBody"></div>
+  </div>
 </div>
 
 <script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzAAwFsUOqHznzEUVWhuvrwv2Exj5v7UrEoKTElNYH2itaH8gntf-ud3pGwrlFyDBY/exec";
+const TIMEOUT_MS = 15000;
 
-  let codeReader = null;
-  let scanning = false;
-  let processingScan = false;
-  let lastScannedCode = "";
-  let lastScanTime = 0;
+const $ = id => document.getElementById(id);
+let controls = null;   // ZXing controls (used to stop camera)
+let handled = false;   // true once a barcode has been accepted for this scan
+let pendingId = "";    // ID being sent (used by RETRY)
 
-  async function startScanner() {
-
-    if (scanning) {
-      return;
-    }
-
-    const video =
-      document.getElementById("video");
-
-    const button =
-      document.getElementById("startButton");
-
-    const status =
-      document.getElementById("status");
-
-    status.className = "status";
-    status.innerHTML = "Starting camera...";
-
-    button.disabled = true;
-    button.innerHTML = "SCANNING...";
-
-    try {
-
-      // Check camera support
-      if (!navigator.mediaDevices ||
-          !navigator.mediaDevices.getUserMedia) {
-
-        throw new Error(
-          "Camera access is not supported by this browser."
-        );
-      }
-
-      codeReader =
-        new ZXingBrowser.BrowserMultiFormatReader();
-
-      scanning = true;
-
-      await codeReader.decodeFromConstraints(
-        {
-          video: {
-            facingMode: {
-              ideal: "environment"
-            }
-          }
-        },
-        video,
-        (result, error) => {
-
-          if (result) {
-
-            const code =
-              result.getText().trim();
-
-            const now =
-              Date.now();
-
-            if (
-              code === lastScannedCode &&
-              now - lastScanTime < 3000
-            ) {
-              return;
-            }
-
-            if (processingScan) {
-              return;
-            }
-            
-            lastScannedCode = code;
-            lastScanTime = now;
-            processingScan = true;
-            
-            processScan(code);
-          }
-
-        }
-      );
-
-      status.className = "status";
-      status.innerHTML = "Camera ready. Scan the barcode.";
-
-    } catch (error) {
-
-      scanning = false;
-      button.disabled = false;
-
-      status.className = "status error";
-
-      status.innerHTML =
-        "Unable to start camera.<br><br>" +
-        escapeHtml(
-          error.message ||
-          "Camera permission was denied."
-        );
-    }
-  }
-  function stopScanner() {
-
-  if (codeReader) {
-    try {
-      codeReader.reset();
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  scanning = false;
-
-  const button =
-    document.getElementById("startButton");
-
-  button.disabled = false;
-  button.innerHTML = "START NEW SCAN";
+function esc(v){
+  return String(v == null ? "" : v).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 }
 
+function setStatus(cls, html){
+  $("status").className = "status " + cls;
+  $("status").innerHTML = html;
+}
 
-  function processScan(registrationId) {
+// ---------- CAMERA ----------
+async function startScan(){
+  handled = false;
+  pendingId = "";
+  $("mainBtn").classList.add("hidden");
+  $("retryBtn").classList.add("hidden");
+  $("cancelBtn").classList.remove("hidden");
+  setStatus("", "Starting camera...");
 
-  const status =
-    document.getElementById("status");
-
-  status.className = "status";
-  status.innerHTML =
-    "Checking registration...";
-
-  const callbackName =
-    "scanCallback_" + Date.now();
-
-  const script =
-    document.createElement("script");
-
-  const url =
-    "https://script.google.com/macros/s/AKfycbzPce2OYEelkDPBQQ2iG1SBy3mDrybicpqmruhPUC6xZDULueAFAYX_YMxDbthkcpJb/exec" +
-    "?action=scan" +
-    "&registrationId=" +
-    encodeURIComponent(registrationId) +
-    "&callback=" +
-    callbackName;
-
-
-  window[callbackName] = function(result) {
-
-    try {
-
-      showResult(result);
-
-    } catch (error) {
-
-      showError(error);
-
-    } finally {
-
-      delete window[callbackName];
-    
-      script.remove();
-    
-      processingScan = false;
-    
+  try{
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      throw new Error("Camera is not supported (use HTTPS and a modern browser).");
     }
+
+    const hints = new Map();
+    if(window.ZXing){
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.CODE_128]);
+      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+    }
+    const reader = new ZXingBrowser.BrowserMultiFormatReader(hints, {delayBetweenScanAttempts:100});
+
+    $("cameraWrap").style.display = "block";
+
+    controls = await reader.decodeFromConstraints(
+      { video:{ facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720} } },
+      $("video"),
+      (result) => {
+        if(result && !handled){
+          handled = true;
+          onDetected(result.getText().trim());
+        }
+      }
+    );
+
+    if(handled){ stopCamera(); return; }   // detected before controls were ready
+    tryContinuousFocus();
+    setStatus("", "Camera ready. Scan the barcode.");
+
+  }catch(err){
+    stopCamera();
+    showStart("error", "<div class='big'>CAMERA ERROR</div><div class='small'>" +
+      esc(err.message || "Camera permission was denied.") + "</div>", "TRY AGAIN");
+  }
+}
+
+function tryContinuousFocus(){
+  try{
+    const track = $("video").srcObject.getVideoTracks()[0];
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    if(caps.focusMode && caps.focusMode.includes("continuous")){
+      track.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{});
+    }
+  }catch(e){}
+}
+
+function stopCamera(){
+  try{ if(controls) controls.stop(); }catch(e){}
+  controls = null;
+  const v = $("video");
+  try{
+    if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
+  }catch(e){}
+  v.srcObject = null;
+  $("cameraWrap").style.display = "none";
+}
+
+function cancelScan(){
+  handled = true;
+  stopCamera();
+  showStart("", "Press START SCAN to begin.", "START SCAN");
+}
+
+// Shows result screen with the main button (clean state, camera off)
+function showStart(cls, html, label){
+  $("cancelBtn").classList.add("hidden");
+  $("retryBtn").classList.add("hidden");
+  $("mainBtn").classList.remove("hidden");
+  $("mainBtn").textContent = label;
+  setStatus(cls, html);
+}
+
+// ---------- SCAN -> API ----------
+function onDetected(code){
+  stopCamera();                         // stop immediately: no double scans
+  if(navigator.vibrate) navigator.vibrate(120);
+  $("cancelBtn").classList.add("hidden");
+  pendingId = code;
+  sendId(code);
+}
+
+function retrySend(){
+  if(pendingId){
+    $("retryBtn").classList.add("hidden");
+    $("mainBtn").classList.add("hidden");
+    sendId(pendingId);
+  }
+}
+
+function sendId(registrationId){
+  setStatus("", "Checking registration...");
+  const cb = "scanCb_" + Date.now();
+  const script = document.createElement("script");
+  let done = false;
+
+  function cleanup(){
+    done = true;
+    clearTimeout(timer);
+    window[cb] = function(){};          // ignore any late response
+    script.remove();
+  }
+  function fail(){
+    if(done) return;
+    cleanup();
+    showConnectionError();
+  }
+
+  const timer = setTimeout(fail, TIMEOUT_MS);
+
+  window[cb] = function(result){
+    if(done) return;
+    cleanup();
+    showResult(result);
   };
-
-
-  script.src = url;
-
-  script.onerror = function() {
-
-  delete window[callbackName];
-
-  script.remove();
-
-  processingScan = false;
-
-  showError({
-    message:
-      "Unable to connect to attendance server."
-  });
-
-};
-
-
+  script.onerror = fail;
+  script.src = API_URL + "?action=scan&registrationId=" + encodeURIComponent(registrationId) +
+               "&callback=" + cb;
   document.body.appendChild(script);
 }
 
-  function showResult(result) {
-    stopScanner();
-
-  const status =
-    document.getElementById("status");
-
-
-  if (!result) {
-
-    status.className =
-      "status error";
-
-    status.innerHTML =
-      "No response from server.";
-
-    return;
-  }
-
-
-  // ==========================================
-  // CHECK-IN SUCCESSFUL
-  // ==========================================
-
-  if (result.success) {
-
-    status.className =
-      "status success";
-
-    status.innerHTML =
-
-      "<div class='participant-name'>" +
-      escapeHtml(result.name) +
-      "</div>" +
-
-      "<div class='church'>" +
-      escapeHtml(result.church) +
-      "</div>" +
-
-      "<div class='time'>" +
-      "CHECK-IN SUCCESSFUL<br>" +
-      escapeHtml(result.time) +
-      "</div>";
-
-    return;
-  }
-
-
-  // ==========================================
-  // ALREADY CHECKED IN
-  // ==========================================
-
-  if (
-    result.status === "ALREADY_ACTIVE"
-  ) {
-
-    status.className =
-      "status warning";
-
-    status.innerHTML =
-
-      "<div class='participant-name'>" +
-      "ALREADY ACTIVE" +
-      "</div>" +
-
-      "<div class='church'>" +
-      escapeHtml(result.name) +
-      "</div>" +
-
-      "<div class='time'>" +
-      "Original Check-In:<br>" +
-      escapeHtml(result.time) +
-      "</div>";
-
-    return;
-  }
-
-
-  // ==========================================
-  // OTHER ERROR
-  // ==========================================
-
-  status.className =
-    "status error";
-
-  status.innerHTML =
-    escapeHtml(
-      result.message ||
-      "Unable to process barcode."
-    );
+// ---------- RESULTS ----------
+function showConnectionError(){
+  setStatus("error", "<div class='big'>CONNECTION ERROR</div>" +
+    "<div class='small'>Could not reach the attendance server. " +
+    "Retrying is safe &ndash; it will never create a duplicate check-in.</div>");
+  $("retryBtn").classList.remove("hidden");
+  $("mainBtn").classList.remove("hidden");
+  $("mainBtn").textContent = "START NEW SCAN";
 }
 
-  function escapeHtml(value) {
+function showResult(r){
+  if(!r){ return showConnectionError(); }
 
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+  if(r.success){
+    return showStart("success",
+      "<div class='big'>CHECK-IN SUCCESSFUL</div>" +
+      "<div class='name'>" + esc(r.name) + "</div>" +
+      "<div class='small'>" + esc(r.church) + "</div>" +
+      "<div class='small'>Check-In Time:<br>" + esc(r.time) + "</div>", "START NEW SCAN");
   }
+  if(r.status === "ALREADY_ACTIVE"){
+    return showStart("warning",
+      "<div class='big'>ALREADY CHECKED IN</div>" +
+      "<div class='name'>" + esc(r.name) + "</div>" +
+      "<div class='small'>Original Check-In Time:<br>" + esc(r.time) + "</div>", "START NEW SCAN");
+  }
+  if(r.status === "NOT_FOUND"){
+    return showStart("error", "<div class='big'>INVALID ID</div>" +
+      "<div class='small'>" + esc(pendingId) + "</div>", "START NEW SCAN");
+  }
+  if(r.status === "NOT_ACTIVE"){
+    return showStart("error",
+      "<div class='big'>REGISTRATION NOT ACTIVE</div>" +
+      "<div class='name'>" + esc(r.name) + "</div>", "START NEW SCAN");
+  }
+  showStart("error", "<div class='big'>ERROR</div><div class='small'>" +
+    esc(r.message || "Unable to process barcode.") + "</div>", "START NEW SCAN");
+}
 
+// ---------- MANUAL CHECK-IN ----------
+let participants = [];
+let manualState = null;
+
+function callApi(params, ok, fail){
+  const cb = "api_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
+  const s = document.createElement("script");
+  let done = false;
+  const end = () => { done = true; clearTimeout(t); window[cb] = function(){}; s.remove(); };
+  const t = setTimeout(() => { if(!done){ end(); fail(); } }, TIMEOUT_MS);
+  window[cb] = r => { if(!done){ end(); ok(r); } };
+  s.onerror = () => { if(!done){ end(); fail(); } };
+  s.src = API_URL + "?" + Object.keys(params).map(k => k + "=" + encodeURIComponent(params[k])).join("&") + "&callback=" + cb;
+  document.body.appendChild(s);
+}
+
+function openManual(){
+  handled = true;
+  stopCamera();
+  showStart("", "Press START SCAN to begin.", "START SCAN");
+  manualState = null;
+  $("manual").classList.remove("hidden");
+  loadParticipants();
+}
+
+function manualBack(){
+  if(manualState !== null){ manualState = null; renderStates(); }
+  else $("manual").classList.add("hidden");
+}
+
+function loadParticipants(){
+  $("mTitle").textContent = "Select State";
+  $("mBack").innerHTML = "&#10005; Close";
+  $("mSearch").classList.add("hidden");
+  $("mBody").innerHTML = "<div class='status'>Loading participants...</div>";
+  callApi({action:"participants"}, r => {
+    if(r && r.success){ participants = r.participants || []; renderStates(); }
+    else loadFailed(r && r.message);
+  }, () => loadFailed());
+}
+
+function loadFailed(msg){
+  $("mBody").innerHTML = "<div class='status error'><div class='big'>CONNECTION ERROR</div>" +
+    "<div class='small'>" + esc(msg || "Could not load participants.") + "</div></div>" +
+    "<button onclick='loadParticipants()'>RETRY</button>";
+}
+
+function renderStates(){
+  manualState = null;
+  $("mTitle").textContent = "Select State";
+  $("mBack").innerHTML = "&#10005; Close";
+  $("mSearch").classList.add("hidden");
+  const counts = {};
+  participants.forEach(p => { const k = p.state || "Unknown"; counts[k] = (counts[k]||0) + 1; });
+  const keys = Object.keys(counts).sort();
+  if(!keys.length){ $("mBody").innerHTML = "<div class='status'>No registrations found.</div>"; return; }
+  $("mBody").innerHTML = keys.map(k =>
+    "<button class='stateBtn' data-s='" + esc(k) + "' onclick='openState(this.dataset.s)'><span>" +
+    esc(k) + "</span><span>" + counts[k] + "</span></button>").join("") +
+    "<button class='secondary' onclick='loadParticipants()'>REFRESH LIST</button>";
+}
+
+function openState(s){
+  manualState = s;
+  $("mTitle").textContent = s;
+  $("mBack").innerHTML = "&larr; States";
+  $("mSearch").value = "";
+  $("mSearch").classList.remove("hidden");
+  renderList();
+}
+
+function renderList(){
+  if(manualState === null) return;
+  const q = $("mSearch").value.trim().toLowerCase();
+  const list = participants
+    .filter(p => (p.state || "Unknown") === manualState)
+    .filter(p => !q || (p.name||"").toLowerCase().includes(q) || (p.mobile||"").includes(q))
+    .sort((a,b) => (a.name||"").localeCompare(b.name||""));
+  if(!list.length){ $("mBody").innerHTML = "<div class='status'>No participants found.</div>"; return; }
+  $("mBody").innerHTML = list.map(p => {
+    const info = "<div class='info'><div class='pn'>" + esc(p.name) + "</div><div class='pm'>" +
+      esc(p.mobile) + "</div><div class='pc'>" + esc(p.church) + "</div>" +
+      (p.error ? "<div class='bad'>" + esc(p.error) + "</div>" : "") + "</div>";
+    if(p.checkedIn){
+      return "<div class='row done'>" + info + "<div class='ok'>&#10003; " +
+        (p.already ? "Already checked in" : "Checked in") + (p.time ? "<br>" + esc(p.time) : "") + "</div></div>";
+    }
+    return "<div class='row'>" + info + "<button " + (p.busy ? "disabled" : "") +
+      " onclick=\"manualCheckIn('" + esc(p.registrationId) + "')\">" + (p.busy ? "..." : "CHECK IN") + "</button></div>";
+  }).join("");
+}
+
+function manualCheckIn(id){
+  const p = participants.find(x => x.registrationId === id);
+  if(!p || p.busy || p.checkedIn) return;
+  p.busy = true; p.error = "";
+  renderList();
+  // Uses the same existing "scan" action as the barcode scanner
+  callApi({action:"scan", registrationId:id}, r => {
+    p.busy = false;
+    if(r && r.success){ p.checkedIn = true; p.already = false; p.time = r.time; }
+    else if(r && r.status === "ALREADY_ACTIVE"){ p.checkedIn = true; p.already = true; p.time = r.time; }
+    else p.error = (r && r.message) || "Check-in failed";
+    renderList();
+  }, () => {
+    p.busy = false; p.error = "Connection error - tap CHECK IN to retry";
+    renderList();
+  });
+}
 </script>
-
 </body>
 </html>
